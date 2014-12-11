@@ -1,0 +1,4 @@
+<resources>
+    <string name="app_name">LockScreen</string>
+    <string name="pin_hint_default">Enter PIN</string>
+</resources>
