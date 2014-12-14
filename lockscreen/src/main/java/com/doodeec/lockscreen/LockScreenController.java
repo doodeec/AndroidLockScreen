@@ -8,6 +8,7 @@ import android.support.v7.app.ActionBarActivity;
 /**
  * @author Dusan Doodeec Bartos
  */
+@SuppressWarnings("unused")
 public class LockScreenController {
 
     /**
@@ -29,6 +30,10 @@ public class LockScreenController {
 
     private static final Handler lockHandler = new Handler();
     private static final String FRAGMENT_NAME = "lock_fragment";
+
+    /**
+     * Locks application
+     */
     private static final Runnable lockTask = new Runnable() {
         @Override
         public void run() {
@@ -36,57 +41,85 @@ public class LockScreenController {
         }
     };
 
+    /**
+     * @return true if app is locked
+     */
     public static boolean isAppLocked() {
         return mLocked;
     }
 
+    /**
+     * Locks app
+     */
     public static void lock() {
         mLocked = true;
     }
 
+    /**
+     * Unlocks app
+     */
     public static void unLock() {
         mLocked = false;
     }
 
+    /**
+     * Locks app with defined delay
+     * Delay is 0 seconds by default
+     */
     public static void lockWithDelay() {
         lockHandler.removeCallbacks(lockTask);
         lockHandler.postDelayed(lockTask, mLockDelay * 1000);
     }
 
+    /**
+     * Sets pin to compare entry with
+     * @param newPIN pin
+     */
     public static void setPIN(String newPIN) {
         mPIN = newPIN;
     }
 
-    public static void setPasscodeDelay(int delay) {
+    /**
+     * Sets delay for locking
+     * @param delay delay in seconds
+     */
+    public static void setPINDelay(int delay) {
         mLockDelay = delay;
     }
 
     /**
-     * @see #askForPasscode(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean)
+     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
      */
-    public static void askForPasscode(ActionBarActivity context, Runnable runnable) {
-        askForPasscode(context, runnable, null, null);
+    public static void askForPIN(ActionBarActivity context, Runnable runnable) {
+        askForPINInternal(context, runnable, null, null, null);
     }
 
     /**
-     * @see #askForPasscode(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean)
+     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
      */
-    public static void askForPasscode(ActionBarActivity context, Runnable runnable, boolean cancelable) {
-        askForPasscode(context, runnable, null, cancelable);
+    public static void askForPIN(ActionBarActivity context, Runnable runnable, Boolean cancelable) {
+        askForPINInternal(context, runnable, null, cancelable, null);
     }
 
     /**
-     * @see #askForPasscode(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean)
+     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
      */
-    public static void askForPasscode(ActionBarActivity context, Runnable runnable, int hintId) {
-        askForPasscode(context, runnable, hintId, null);
+    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId) {
+        askForPINInternal(context, runnable, hintId, null, null);
     }
 
     /**
-     * @see #askForPasscode(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean)
+     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
      */
-    public static void askForPasscode(ActionBarActivity context, Runnable runnable, int hintId, boolean cancelable) {
-        askForPasscode(context, runnable, hintId, cancelable);
+    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable) {
+        askForPINInternal(context, runnable, hintId, cancelable, null);
+    }
+
+    /**
+     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
+     */
+    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
+        askForPINInternal(context, runnable, hintId, cancelable, fullScreen);
     }
 
     /**
@@ -97,7 +130,7 @@ public class LockScreenController {
      * @param hintId     text to display when PIN field is empty
      * @param cancelable true if dialog can be cancelled
      */
-    private static void askForPasscode(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable) {
+    private static void askForPINInternal(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
         FragmentManager fm = context.getSupportFragmentManager();
 
         Fragment fragment = fm.findFragmentByTag(FRAGMENT_NAME);
@@ -105,20 +138,31 @@ public class LockScreenController {
         if (fragment == null) {
             LockScreen lockScreen = new LockScreen();
 
-            updateLockScreenSettings(lockScreen, runnable, hintId, cancelable);
+            updateLockScreenSettings(lockScreen, runnable, hintId, cancelable, fullScreen);
             lockScreen.show(fm, FRAGMENT_NAME);
         } else if (fragment instanceof LockScreen) {
-            updateLockScreenSettings((LockScreen) fragment, runnable, hintId, cancelable);
+            updateLockScreenSettings((LockScreen) fragment, runnable, hintId, cancelable,  fullScreen);
         }
     }
 
-    private static void updateLockScreenSettings(LockScreen lockScreen, Runnable runnable, Integer hintId, Boolean cancelable) {
+    /**
+     * Sets/updates lock settings internally
+     * @param lockScreen lock screen
+     * @param runnable success callback
+     * @param hintId hint resource id
+     * @param cancelable is lock screen cancellable by back button
+     * @param fullScreen is lock screen fullscreen
+     */
+    private static void updateLockScreenSettings(LockScreen lockScreen, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
         lockScreen.setRealValue(mPIN);
         if (hintId != null) {
             lockScreen.setHint(hintId);
         }
         if (cancelable != null) {
             lockScreen.setCancelableDialog(cancelable);
+        }
+        if (fullScreen != null) {
+            lockScreen.setFullscreen(fullScreen);
         }
         lockScreen.setRunnable(runnable);
     }

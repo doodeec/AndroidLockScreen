@@ -17,12 +17,13 @@ public class MainActivity extends ActionBarActivity {
         findViewById(R.id.my_button).setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                LockScreenController.askForPasscode(MainActivity.this, new Runnable() {
+                LockScreenController.setPIN("1234");
+                LockScreenController.askForPIN(MainActivity.this, new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(MainActivity.this, "Unlocked", Toast.LENGTH_SHORT).show();
                     }
-                });
+                }, null, null, false);
             }
         });
     }

@@ -6,7 +6,6 @@ package com.doodeec.lockscreen;
  * @author Dusan Doodeec Bartos
  */
 public class LockGridValues {
-
     public static final String NUMBER_TYPE = "Number";
     public static final String SUBMIT_TYPE = "Submit";
     public static final String BACK_TYPE = "Back";
@@ -25,8 +24,4 @@ public class LockGridValues {
             {"0", NUMBER_TYPE},
             {"OK", SUBMIT_TYPE}
     };
-
-    public enum GridValueType {
-        Number, Submit, Back
-    }
 }

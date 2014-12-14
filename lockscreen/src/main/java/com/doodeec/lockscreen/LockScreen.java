@@ -9,6 +9,7 @@ import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.Window;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -21,19 +22,23 @@ import java.util.Arrays;
  *
  * @author Dusan Doodeec Bartos
  */
+@SuppressWarnings("unused")
 public class LockScreen extends DialogFragment {
 
+    private static final String BUNDLE_REAL_VALUE = "realVal";
     private static final String BUNDLE_CURRENT_VALUE = "val";
     private static final String BUNDLE_CURRENT_HINT = "hint";
+    private static final String BUNDLE_FULLSCREEN = "fullscreen";
 
     private boolean mCancelable = false;
+    private boolean mFullscreen = true;
     private CharSequence mHint = "Enter PIN";
     private CharSequence mRealValue;
     private StringBuilder mValue = new StringBuilder("");
     private TextView mValueTextView;
 
     // empty initial runnable
-    private Runnable mRunnable = new Runnable() {
+    private static Runnable mRunnable = new Runnable() {
         @Override
         public void run() {
         }
@@ -100,6 +105,16 @@ public class LockScreen extends DialogFragment {
     }
 
     /**
+     * Sets fragment to be fullscreen, or dialog style
+     * Dialog is fullscreen by default
+     *
+     * @param isFullscreen true to show as fullscreen
+     */
+    public void setFullscreen(boolean isFullscreen) {
+        mFullscreen = isFullscreen;
+    }
+
+    /**
      * Make this dialog fullscreen
      *
      * @param savedInstanceState saved state
@@ -107,7 +122,18 @@ public class LockScreen extends DialogFragment {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setStyle(android.app.DialogFragment.STYLE_NORMAL, android.R.style.Theme_Light_NoTitleBar_Fullscreen);
+
+        if (savedInstanceState != null) {
+            mRealValue = savedInstanceState.getString(BUNDLE_REAL_VALUE);
+            mFullscreen = savedInstanceState.getBoolean(BUNDLE_FULLSCREEN);
+            mHint = savedInstanceState.getString(BUNDLE_CURRENT_HINT);
+            mValue = new StringBuilder();
+            mValue.append(savedInstanceState.getString(BUNDLE_CURRENT_VALUE));
+        }
+
+        if (mFullscreen) {
+            setStyle(DialogFragment.STYLE_NORMAL, android.R.style.Theme_Light_NoTitleBar_Fullscreen);
+        }
     }
 
     @NonNull
@@ -116,10 +142,8 @@ public class LockScreen extends DialogFragment {
         Dialog dialog = super.onCreateDialog(savedInstanceState);
         this.setCancelable(mCancelable);
 
-        if (savedInstanceState != null) {
-            mHint = savedInstanceState.getString(BUNDLE_CURRENT_HINT);
-            mValue = new StringBuilder();
-            mValue.append(savedInstanceState.getString(BUNDLE_CURRENT_VALUE));
+        if (!mFullscreen) {
+            dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         }
 
         return dialog;
@@ -143,7 +167,6 @@ public class LockScreen extends DialogFragment {
         // initialize numbers grid
         final LockGridAdapter adapter = new LockGridAdapter(getActivity());
         numbersGridView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
-//        numbersGridView.setLayoutManager(new FixedGridLayoutManager(getActivity(), 3));
         numbersGridView.setAdapter(adapter);
         numbersGridView.setHasFixedSize(true);
         numbersGridView.addOnItemTouchListener(
@@ -188,8 +211,10 @@ public class LockScreen extends DialogFragment {
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
+        outState.putString(BUNDLE_REAL_VALUE, mRealValue.toString());
         outState.putString(BUNDLE_CURRENT_VALUE, mValue.toString());
         outState.putString(BUNDLE_CURRENT_HINT, mHint.toString());
+        outState.putBoolean(BUNDLE_FULLSCREEN, mFullscreen);
 
         super.onSaveInstanceState(outState);
     }
@@ -225,5 +250,16 @@ public class LockScreen extends DialogFragment {
     private void notifyWrongValue() {
         mValueTextView.setText("");
         Toast.makeText(getActivity(), "Wrong PIN! Try again.", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onDestroy() {
+        // reset runnable
+        mRunnable = new Runnable() {
+            @Override
+            public void run() {
+            }
+        };
+        super.onDestroy();
     }
 }
