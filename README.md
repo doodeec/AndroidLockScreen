@@ -1,6 +1,3 @@
-AndroidLockScreen
-=================
-
 # PIN lock screen for Android
 
 ## Description
@@ -30,4 +27,4 @@ enters correct PIN, callback runnable is triggered.
 Released under Apache V2.0 licence.
 
 ## Author
-Dusan Bartos - (doodeec)[http://doodeec.com]
+Dusan Bartos - [doodeec](http://doodeec.com)
