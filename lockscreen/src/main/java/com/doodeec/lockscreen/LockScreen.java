@@ -115,6 +115,27 @@ public class LockScreen extends DialogFragment {
     }
 
     /**
+     * Updates lock screen settings all at once
+     * @param realPIN PIN to compare user entry to
+     * @param hintId hint resource id
+     * @param cancelable is lock dialog cancellable
+     * @param fullScreen is lock dialog fullscreen
+     */
+    public void updateSettings(String realPIN, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
+        setRealValue(realPIN);
+        if (hintId != null) {
+            setHint(hintId);
+        }
+        if (cancelable != null) {
+            setCancelableDialog(cancelable);
+        }
+        if (fullScreen != null) {
+            setFullscreen(fullScreen);
+        }
+        setRunnable(runnable);
+    }
+
+    /**
      * Make this dialog fullscreen
      *
      * @param savedInstanceState saved state

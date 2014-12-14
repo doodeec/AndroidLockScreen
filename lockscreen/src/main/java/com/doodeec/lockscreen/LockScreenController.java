@@ -73,6 +73,7 @@ public class LockScreenController {
 
     /**
      * Sets pin to compare entry with
+     *
      * @param newPIN pin
      */
     public static void setPIN(String newPIN) {
@@ -81,6 +82,7 @@ public class LockScreenController {
 
     /**
      * Sets delay for locking
+     *
      * @param delay delay in seconds
      */
     public static void setPINDelay(int delay) {
@@ -138,32 +140,10 @@ public class LockScreenController {
         if (fragment == null) {
             LockScreen lockScreen = new LockScreen();
 
-            updateLockScreenSettings(lockScreen, runnable, hintId, cancelable, fullScreen);
+            lockScreen.updateSettings(mPIN, runnable, hintId, cancelable, fullScreen);
             lockScreen.show(fm, FRAGMENT_NAME);
         } else if (fragment instanceof LockScreen) {
-            updateLockScreenSettings((LockScreen) fragment, runnable, hintId, cancelable,  fullScreen);
+            ((LockScreen) fragment).updateSettings(mPIN, runnable, hintId, cancelable, fullScreen);
         }
-    }
-
-    /**
-     * Sets/updates lock settings internally
-     * @param lockScreen lock screen
-     * @param runnable success callback
-     * @param hintId hint resource id
-     * @param cancelable is lock screen cancellable by back button
-     * @param fullScreen is lock screen fullscreen
-     */
-    private static void updateLockScreenSettings(LockScreen lockScreen, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
-        lockScreen.setRealValue(mPIN);
-        if (hintId != null) {
-            lockScreen.setHint(hintId);
-        }
-        if (cancelable != null) {
-            lockScreen.setCancelableDialog(cancelable);
-        }
-        if (fullScreen != null) {
-            lockScreen.setFullscreen(fullScreen);
-        }
-        lockScreen.setRunnable(runnable);
     }
 }
