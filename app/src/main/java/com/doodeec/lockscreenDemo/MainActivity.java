@@ -23,7 +23,7 @@ public class MainActivity extends ActionBarActivity {
                     public void run() {
                         Toast.makeText(MainActivity.this, "Unlocked", Toast.LENGTH_SHORT).show();
                     }
-                }, null, null, false);
+                }, null, null, true);
             }
         });
     }
