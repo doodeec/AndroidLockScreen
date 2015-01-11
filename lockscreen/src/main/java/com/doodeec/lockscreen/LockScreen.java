@@ -30,12 +30,21 @@ public class LockScreen extends DialogFragment {
     private static final String BUNDLE_CURRENT_HINT = "hint";
     private static final String BUNDLE_FULLSCREEN = "fullscreen";
 
+    /**
+     * Dialog themes
+     */
+    public static final int THEME_LIGHT = 1;
+    public static final int THEME_DARK = 2;
+
+    private int mTheme = THEME_LIGHT;
     private boolean mCancelable = false;
     private boolean mFullscreen = true;
     private CharSequence mHint = "Enter PIN";
     private CharSequence mRealValue;
     private StringBuilder mValue = new StringBuilder("");
     private TextView mValueTextView;
+    private View mLayoutView;
+    private View mValueSeparator;
 
     // empty initial runnable
     private static Runnable mRunnable = new Runnable() {
@@ -115,6 +124,16 @@ public class LockScreen extends DialogFragment {
     }
 
     /**
+     * Sets dialog theme
+     * possible variants are {@link LockScreen#THEME_DARK} and {@link LockScreen#THEME_LIGHT}
+     *
+     * @param theme theme to apply
+     */
+    private void setTheme(int theme) {
+        mTheme = theme == THEME_DARK ? THEME_DARK : THEME_LIGHT;
+    }
+
+    /**
      * Updates lock screen settings all at once
      * @param realPIN PIN to compare user entry to
      * @param hintId hint resource id
@@ -172,10 +191,11 @@ public class LockScreen extends DialogFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        View view = inflater.inflate(R.layout.lock_screen, container);
+        mLayoutView = inflater.inflate(R.layout.lock_screen, container);
 
-        mValueTextView = (TextView) view.findViewById(R.id.pin_value);
-        RecyclerView numbersGridView = (RecyclerView) view.findViewById(R.id.numbers_grid);
+        mValueTextView = (TextView) mLayoutView.findViewById(R.id.pin_value);
+        mValueSeparator = mLayoutView.findViewById(R.id.separator);
+        RecyclerView numbersGridView = (RecyclerView) mLayoutView.findViewById(R.id.numbers_grid);
 
         if (mValueTextView == null || numbersGridView == null) {
             throw new AssertionError("Lock screen has invalid layout");
@@ -222,7 +242,7 @@ public class LockScreen extends DialogFragment {
                 })
         );
 
-        return view;
+        return mLayoutView;
     }
 
     /**
@@ -238,6 +258,10 @@ public class LockScreen extends DialogFragment {
         outState.putBoolean(BUNDLE_FULLSCREEN, mFullscreen);
 
         super.onSaveInstanceState(outState);
+    }
+
+    private void updateTheme() {
+        //TODO
     }
 
     /**
