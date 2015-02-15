@@ -8,7 +8,7 @@ android {
         minSdkVersion 10
         targetSdkVersion 21
         versionCode 1
-        versionName "1.0.1"
+        versionName "1.0.2"
     }
     buildTypes {
         release {
@@ -18,8 +18,40 @@ android {
     }
 }
 
+/**
+ * Copies aar file to library folder
+ */
+task copyLibraryFile(type: Copy) {
+    from "${buildDir}/outputs/aar/${project.name}-release.aar"
+    into "${rootDir}/library/"
+    rename ("${project.name}-release.aar", "${project.name}-${android.defaultConfig.versionName}.aar")
+}
+
+/**
+ * builds library .aar file and copies it to library folder
+ */
+task buildLibrary(dependsOn: ['assemble', 'copyLibraryFile']) {
+}
+
+apply plugin: 'maven'
+task generatePom << {
+    pom {
+        project {
+            version android.defaultConfig.versionName
+            groupId "com.doodeec.utils"
+            packaging "aar"
+            licenses {
+                license {
+                    name 'The Apache Software License, Version 2.0'
+                    url 'http://www.apache.org/licenses/LICENSE-2.0.txt'
+                    distribution 'repo'
+                }
+            }
+        }
+    }.writeTo("$buildDir/${project.name}-${android.defaultConfig.versionName}.pom")
+}
+
 dependencies {
-    compile fileTree(dir: 'libs', include: ['*.jar'])
     compile 'com.android.support:appcompat-v7:21.0.3'
     compile 'com.android.support:recyclerview-v7:21.0.3'
 }

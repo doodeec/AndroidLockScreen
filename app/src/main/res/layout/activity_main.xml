@@ -15,4 +15,12 @@
         android:padding="@dimen/activity_horizontal_margin"
         android:text="Request PIN"/>
 
+    <Button
+        android:id="@+id/my_setup"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:padding="@dimen/activity_horizontal_margin"
+        android:text="Setup PIN"
+        android:layout_below="@id/my_button"/>
+
 </RelativeLayout>

@@ -11,7 +11,6 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.view.Window;
 import android.widget.TextView;
-import android.widget.Toast;
 
 import java.util.Arrays;
 
@@ -22,13 +21,13 @@ import java.util.Arrays;
  *
  * @author Dusan Doodeec Bartos
  */
-@SuppressWarnings("unused")
 public class LockScreen extends DialogFragment {
 
     private static final String BUNDLE_REAL_VALUE = "realVal";
     private static final String BUNDLE_CURRENT_VALUE = "val";
     private static final String BUNDLE_CURRENT_HINT = "hint";
     private static final String BUNDLE_FULLSCREEN = "fullscreen";
+    private static final String BUNDLE_SETUP = "setup";
 
     /**
      * Dialog themes
@@ -39,6 +38,7 @@ public class LockScreen extends DialogFragment {
     private int mTheme = THEME_LIGHT;
     private boolean mCancelable = false;
     private boolean mFullscreen = true;
+    private boolean mSetup = false;
     private CharSequence mHint = "Enter PIN";
     private CharSequence mRealValue;
     private StringBuilder mValue = new StringBuilder("");
@@ -46,31 +46,17 @@ public class LockScreen extends DialogFragment {
     private View mLayoutView;
     private View mValueSeparator;
 
-    // empty initial runnable
-    private static Runnable mRunnable = new Runnable() {
-        @Override
-        public void run() {
-        }
-    };
+    // empty initial listener
+    private static PINDialogListener mListener;
 
     /**
-     * Sets success unlocking callback
+     * Sets listener
      *
-     * @param runnable callback to execute after successful PIN entry
+     * @param listener callback to execute after successful PIN entry
      *                 null to disable callback
      */
-    public void setRunnable(Runnable runnable) {
-        if (runnable != null) {
-            mRunnable = runnable;
-        } else {
-            // null disables previously set callback
-            // need this when updating lock screen settings
-            mRunnable = new Runnable() {
-                @Override
-                public void run() {
-                }
-            };
-        }
+    public void setListener(PINDialogListener listener) {
+        mListener = listener;
     }
 
     /**
@@ -88,10 +74,10 @@ public class LockScreen extends DialogFragment {
      * Sets hint to be displayed on the lock screen
      * Can vary for different cases (Enter PIN, Repeat PIN...)
      *
-     * @param hintId hint resource id
+     * @param hint hint
      */
-    public void setHint(int hintId) {
-        mHint = getResources().getString(hintId);
+    public void setHint(String hint) {
+        mHint = hint;
     }
 
     /**
@@ -124,6 +110,16 @@ public class LockScreen extends DialogFragment {
     }
 
     /**
+     * Sets fragment to be in setup mode
+     * setup mode is used when new PIN is created
+     *
+     * @param isSetup true to be in setup mode
+     */
+    public void setSetup(boolean isSetup) {
+        mSetup = isSetup;
+    }
+
+    /**
      * Sets dialog theme
      * possible variants are {@link LockScreen#THEME_DARK} and {@link LockScreen#THEME_LIGHT}
      *
@@ -135,15 +131,17 @@ public class LockScreen extends DialogFragment {
 
     /**
      * Updates lock screen settings all at once
-     * @param realPIN PIN to compare user entry to
-     * @param hintId hint resource id
+     *
+     * @param realPIN    PIN to compare user entry to
+     * @param hint       hint
      * @param cancelable is lock dialog cancellable
      * @param fullScreen is lock dialog fullscreen
      */
-    public void updateSettings(String realPIN, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
+    public void updateSettings(String realPIN, PINDialogListener listener, String hint,
+                               Boolean cancelable, Boolean fullScreen, boolean setup) {
         setRealValue(realPIN);
-        if (hintId != null) {
-            setHint(hintId);
+        if (hint != null) {
+            setHint(hint);
         }
         if (cancelable != null) {
             setCancelableDialog(cancelable);
@@ -151,7 +149,8 @@ public class LockScreen extends DialogFragment {
         if (fullScreen != null) {
             setFullscreen(fullScreen);
         }
-        setRunnable(runnable);
+        setSetup(setup);
+        setListener(listener);
     }
 
     /**
@@ -166,6 +165,7 @@ public class LockScreen extends DialogFragment {
         if (savedInstanceState != null) {
             mRealValue = savedInstanceState.getString(BUNDLE_REAL_VALUE);
             mFullscreen = savedInstanceState.getBoolean(BUNDLE_FULLSCREEN);
+            mSetup = savedInstanceState.getBoolean(BUNDLE_SETUP);
             mHint = savedInstanceState.getString(BUNDLE_CURRENT_HINT);
             mValue = new StringBuilder();
             mValue.append(savedInstanceState.getString(BUNDLE_CURRENT_VALUE));
@@ -256,6 +256,7 @@ public class LockScreen extends DialogFragment {
         outState.putString(BUNDLE_CURRENT_VALUE, mValue.toString());
         outState.putString(BUNDLE_CURRENT_HINT, mHint.toString());
         outState.putBoolean(BUNDLE_FULLSCREEN, mFullscreen);
+        outState.putBoolean(BUNDLE_SETUP, mSetup);
 
         super.onSaveInstanceState(outState);
     }
@@ -279,32 +280,32 @@ public class LockScreen extends DialogFragment {
      * If PIN is correctly entered, it runs registered callback
      */
     private void submitPIN() {
-        if (mValue.toString().equals(mRealValue)) {
-            // fire callback when correctly entered
-            mRunnable.run();
-
-            getDialog().dismiss();
-        } else {
-            notifyWrongValue();
+        if (mListener != null) {
+            if (mSetup) {
+                mListener.onPINSetup(mValue.toString());
+                getDialog().dismiss();
+            } else if (mValue.toString().equals(mRealValue)) {
+                mListener.onPINEntered();
+                getDialog().dismiss();
+            } else {
+                mListener.onWrongEntry();
+                mValueTextView.setText("");
+            }
         }
-    }
-
-    /**
-     * Notifies user about entering a wrong value
-     */
-    private void notifyWrongValue() {
-        mValueTextView.setText("");
-        Toast.makeText(getActivity(), "Wrong PIN! Try again.", Toast.LENGTH_SHORT).show();
     }
 
     @Override
     public void onDestroy() {
         // reset runnable
-        mRunnable = new Runnable() {
-            @Override
-            public void run() {
-            }
-        };
+        mListener = null;
         super.onDestroy();
+    }
+
+    public interface PINDialogListener {
+        void onPINEntered();
+
+        void onPINSetup(String pin);
+
+        void onWrongEntry();
     }
 }

@@ -4,11 +4,11 @@ import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
 import android.support.v7.app.ActionBarActivity;
+import android.widget.Toast;
 
 /**
  * @author Dusan Doodeec Bartos
  */
-@SuppressWarnings("unused")
 public class LockScreenController {
 
     /**
@@ -29,7 +29,7 @@ public class LockScreenController {
     private static String mPIN = "";
 
     private static final Handler lockHandler = new Handler();
-    private static final String FRAGMENT_NAME = "lock_fragment";
+    private static final String FRAGMENT_TAG = "lock_fragment";
 
     /**
      * Locks application
@@ -81,6 +81,15 @@ public class LockScreenController {
     }
 
     /**
+     * Gets pin
+     *
+     * @return pin
+     */
+    public static String getPIN() {
+        return mPIN;
+    }
+
+    /**
      * Sets delay for locking
      *
      * @param delay delay in seconds
@@ -89,61 +98,68 @@ public class LockScreenController {
         mLockDelay = delay;
     }
 
-    /**
-     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
-     */
-    public static void askForPIN(ActionBarActivity context, Runnable runnable) {
-        askForPINInternal(context, runnable, null, null, null);
+    public static void askForPIN(final ActionBarActivity context, final Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
+        askForPINInternal(context, new LockScreen.PINDialogListener() {
+            @Override
+            public void onPINEntered() {
+                runnable.run();
+            }
+
+            @Override
+            public void onPINSetup(String pin) {
+
+            }
+
+            @Override
+            public void onWrongEntry() {
+                Toast.makeText(context, "Wrong PIN! Try again.", Toast.LENGTH_SHORT).show();
+            }
+        }, hintId, cancelable, fullScreen, false);
     }
 
-    /**
-     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
-     */
-    public static void askForPIN(ActionBarActivity context, Runnable runnable, Boolean cancelable) {
-        askForPINInternal(context, runnable, null, cancelable, null);
-    }
+    public static void setupPIN(ActionBarActivity context, final Runnable runnable, Boolean fullScreen) {
+        askForPINInternal(context, new LockScreen.PINDialogListener() {
+            @Override
+            public void onPINEntered() {
+            }
 
-    /**
-     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
-     */
-    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId) {
-        askForPINInternal(context, runnable, hintId, null, null);
-    }
+            @Override
+            public void onPINSetup(String pin) {
+                setPIN(pin);
+                runnable.run();
+            }
 
-    /**
-     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
-     */
-    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable) {
-        askForPINInternal(context, runnable, hintId, cancelable, null);
-    }
+            @Override
+            public void onWrongEntry() {
 
-    /**
-     * @see #askForPINInternal(android.support.v7.app.ActionBarActivity, Runnable, Integer, Boolean, Boolean)
-     */
-    public static void askForPIN(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
-        askForPINInternal(context, runnable, hintId, cancelable, fullScreen);
+            }
+        }, R.string.setup_pin_hint, true, fullScreen, true);
     }
 
     /**
      * Prompt PIN dialog to unlock app
      *
      * @param context    context
-     * @param runnable   runnable to execute after successful PIN entered
+     * @param listener   listener
      * @param hintId     text to display when PIN field is empty
      * @param cancelable true if dialog can be cancelled
      */
-    private static void askForPINInternal(ActionBarActivity context, Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
+    private static void askForPINInternal(final ActionBarActivity context,
+                                          LockScreen.PINDialogListener listener,
+                                          Integer hintId, Boolean cancelable, Boolean fullScreen,
+                                          boolean setup) {
         FragmentManager fm = context.getSupportFragmentManager();
 
-        Fragment fragment = fm.findFragmentByTag(FRAGMENT_NAME);
+        Fragment fragment = fm.findFragmentByTag(FRAGMENT_TAG);
+        String hint = hintId != null ? context.getString(hintId) : null;
 
         if (fragment == null) {
             LockScreen lockScreen = new LockScreen();
 
-            lockScreen.updateSettings(mPIN, runnable, hintId, cancelable, fullScreen);
-            lockScreen.show(fm, FRAGMENT_NAME);
+            lockScreen.show(fm, FRAGMENT_TAG);
+            lockScreen.updateSettings(mPIN, listener, hint, cancelable, fullScreen, setup);
         } else if (fragment instanceof LockScreen) {
-            ((LockScreen) fragment).updateSettings(mPIN, runnable, hintId, cancelable, fullScreen);
+            ((LockScreen) fragment).updateSettings(mPIN, listener, hint, cancelable, fullScreen, setup);
         }
     }
 }

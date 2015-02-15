@@ -26,5 +26,18 @@ public class MainActivity extends ActionBarActivity {
                 }, null, null, true);
             }
         });
+
+        findViewById(R.id.my_setup).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LockScreenController.setPIN(null);
+                LockScreenController.setupPIN(MainActivity.this, new Runnable() {
+                    @Override
+                    public void run() {
+                        Toast.makeText(MainActivity.this, "Set", Toast.LENGTH_SHORT).show();
+                    }
+                }, true);
+            }
+        });
     }
 }
