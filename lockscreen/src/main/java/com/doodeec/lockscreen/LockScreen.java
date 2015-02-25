@@ -48,6 +48,11 @@ public class LockScreen extends DialogFragment {
 
     // empty initial listener
     private static PINDialogListener mListener;
+    private static int mActiveColor = -1;
+
+    public static void setActiveColor(int color) {
+        mActiveColor = color;
+    }
 
     /**
      * Sets listener
@@ -206,7 +211,7 @@ public class LockScreen extends DialogFragment {
         mValueTextView.setText(mValue);
 
         // initialize numbers grid
-        final LockGridAdapter adapter = new LockGridAdapter(getActivity());
+        final LockGridAdapter adapter = new LockGridAdapter(getActivity(), mActiveColor);
         numbersGridView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         numbersGridView.setAdapter(adapter);
         numbersGridView.setHasFixedSize(true);

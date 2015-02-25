@@ -1,5 +1,6 @@
 package com.doodeec.lockscreen;
 
+import android.graphics.drawable.Drawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.View;
 import android.widget.TextView;
@@ -15,13 +16,15 @@ public class LockGridViewHolder extends RecyclerView.ViewHolder {
 
     TextView mItemValue;
 
-    public LockGridViewHolder(View v) {
+    public LockGridViewHolder(View v, Drawable background) {
         super(v);
         mItemValue = (TextView) v.findViewById(R.id.grid_value);
 
         if (mItemValue == null) {
             throw new AssertionError("Grid item has invalid layout");
         }
+        
+        itemView.setBackground(background);
     }
 
     public void setValue(String value) {

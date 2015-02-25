@@ -1,6 +1,14 @@
 package com.doodeec.lockscreen;
 
-import android.app.Activity;
+import android.content.Context;
+import android.graphics.Bitmap;
+import android.graphics.Canvas;
+import android.graphics.PorterDuff;
+import android.graphics.PorterDuffColorFilter;
+import android.graphics.drawable.BitmapDrawable;
+import android.graphics.drawable.Drawable;
+import android.graphics.drawable.GradientDrawable;
+import android.graphics.drawable.StateListDrawable;
 import android.support.v7.widget.RecyclerView;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -15,18 +23,25 @@ import android.view.ViewGroup;
  */
 public class LockGridAdapter extends RecyclerView.Adapter<LockGridViewHolder> {
 
-    private Activity mContext;
+    private Context mContext;
     private String[][] mValues;
+    private int mActiveColor;
+    private float dp;
 
-    public LockGridAdapter(Activity context) {
+    public LockGridAdapter(Context context, int activeColor) {
         mContext = context;
         mValues = LockGridValues.gridValues;
+        mActiveColor = activeColor;
+
+        dp = mContext.getResources().getDisplayMetrics().density;
     }
 
     @Override
     public LockGridViewHolder onCreateViewHolder(ViewGroup viewGroup, int i) {
         return new LockGridViewHolder(
-                LayoutInflater.from(mContext).inflate(R.layout.lock_grid_item, viewGroup, false));
+                LayoutInflater.from(mContext).inflate(R.layout.lock_grid_item, viewGroup, false),
+                getBackgroundColorScheme(mContext.getResources().getColor(android.R.color.transparent),
+                        mActiveColor));
     }
 
     @Override
@@ -54,5 +69,32 @@ public class LockGridAdapter extends RecyclerView.Adapter<LockGridViewHolder> {
 
     public String getItem(int position) {
         return mValues[position][0];
+    }
+
+    private Drawable bitmapOfColor(GradientDrawable source, int color) {
+
+        Bitmap sourceCopy = Bitmap.createBitmap(Math.round(80 * dp), Math.round(60 * dp), Bitmap.Config.ARGB_8888);
+
+        Canvas canvas = new Canvas(sourceCopy);
+        source.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
+//        source.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_OVER));
+        source.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.DARKEN));
+        source.draw(canvas);
+
+        return new BitmapDrawable(mContext.getResources(), sourceCopy);
+    }
+
+    public Drawable getBackgroundColorScheme(int defaultColor, int pressedColor) {
+        GradientDrawable gradientDrawable = (GradientDrawable) mContext.getResources().getDrawable(R.drawable.lock_grid_item_default);
+
+        if (gradientDrawable != null) {
+            // set icon states
+            StateListDrawable drawable = new StateListDrawable();
+            drawable.addState(new int[]{android.R.attr.state_pressed}, bitmapOfColor(gradientDrawable, pressedColor));
+            drawable.addState(new int[]{}, bitmapOfColor(gradientDrawable, defaultColor));
+            return drawable;
+        } else {
+            return null;
+        }
     }
 }
