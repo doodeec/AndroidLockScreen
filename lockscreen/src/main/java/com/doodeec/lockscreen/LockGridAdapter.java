@@ -1,11 +1,7 @@
 package com.doodeec.lockscreen;
 
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.Canvas;
-import android.graphics.PorterDuff;
-import android.graphics.PorterDuffColorFilter;
-import android.graphics.drawable.BitmapDrawable;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.graphics.drawable.GradientDrawable;
 import android.graphics.drawable.StateListDrawable;
@@ -71,30 +67,25 @@ public class LockGridAdapter extends RecyclerView.Adapter<LockGridViewHolder> {
         return mValues[position][0];
     }
 
-    private Drawable bitmapOfColor(GradientDrawable source, int color) {
-
-        Bitmap sourceCopy = Bitmap.createBitmap(Math.round(80 * dp), Math.round(60 * dp), Bitmap.Config.ARGB_8888);
-
-        Canvas canvas = new Canvas(sourceCopy);
-        source.setBounds(0, 0, canvas.getWidth(), canvas.getHeight());
-//        source.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.SRC_OVER));
-        source.setColorFilter(new PorterDuffColorFilter(color, PorterDuff.Mode.DARKEN));
-        source.draw(canvas);
-
-        return new BitmapDrawable(mContext.getResources(), sourceCopy);
-    }
-
     public Drawable getBackgroundColorScheme(int defaultColor, int pressedColor) {
-        GradientDrawable gradientDrawable = (GradientDrawable) mContext.getResources().getDrawable(R.drawable.lock_grid_item_default);
+        int defaultBorder = Color.argb(30, 0, 0, 0);
+        int pressedBorder = Color.argb(80, 0, 0, 0);
 
-        if (gradientDrawable != null) {
-            // set icon states
-            StateListDrawable drawable = new StateListDrawable();
-            drawable.addState(new int[]{android.R.attr.state_pressed}, bitmapOfColor(gradientDrawable, pressedColor));
-            drawable.addState(new int[]{}, bitmapOfColor(gradientDrawable, defaultColor));
-            return drawable;
-        } else {
-            return null;
-        }
+        // default state
+        GradientDrawable defaultGd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
+                new int[]{defaultColor, defaultColor});
+        defaultGd.setStroke(3, defaultBorder);
+        defaultGd.setCornerRadius(3f * dp);
+
+        // pressed state
+        GradientDrawable pressedGd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
+                new int[]{pressedColor, pressedColor});
+        pressedGd.setStroke(3, pressedBorder);
+        pressedGd.setCornerRadius(3f * dp);
+
+        StateListDrawable drawable = new StateListDrawable();
+        drawable.addState(new int[]{android.R.attr.state_pressed}, pressedGd);
+        drawable.addState(new int[]{}, defaultGd);
+        return drawable;
     }
 }

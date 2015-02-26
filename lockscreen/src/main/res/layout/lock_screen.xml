@@ -22,7 +22,7 @@
             android:textSize="40sp"
             android:gravity="center"
             android:padding="@dimen/margin"
-            android:hint="Enter PIN"/>
+            android:hint="@string/pin_hint_default"/>
 
         <View
             android:id="@+id/separator"

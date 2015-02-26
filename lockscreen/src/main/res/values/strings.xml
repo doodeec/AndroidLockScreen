@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">LockScreen</string>
     <string name="pin_hint_default">Enter PIN</string>
     <string name="setup_pin_hint">Setup PIN</string>
+    <string name="wrong_pin_toast">Wrong PIN! Try again.</string>
 </resources>

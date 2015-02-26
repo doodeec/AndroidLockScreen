@@ -112,7 +112,7 @@ public class LockScreenController {
 
             @Override
             public void onWrongEntry() {
-                Toast.makeText(context, "Wrong PIN! Try again.", Toast.LENGTH_SHORT).show();
+                Toast.makeText(context, R.string.wrong_pin_toast, Toast.LENGTH_SHORT).show();
             }
         }, hintId, cancelable, fullScreen, false);
     }

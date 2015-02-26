@@ -32,10 +32,7 @@ public class LockScreen extends DialogFragment {
     /**
      * Dialog themes
      */
-    public static final int THEME_LIGHT = 1;
-    public static final int THEME_DARK = 2;
 
-    private int mTheme = THEME_LIGHT;
     private boolean mCancelable = false;
     private boolean mFullscreen = true;
     private boolean mSetup = false;
@@ -122,16 +119,6 @@ public class LockScreen extends DialogFragment {
      */
     public void setSetup(boolean isSetup) {
         mSetup = isSetup;
-    }
-
-    /**
-     * Sets dialog theme
-     * possible variants are {@link LockScreen#THEME_DARK} and {@link LockScreen#THEME_LIGHT}
-     *
-     * @param theme theme to apply
-     */
-    private void setTheme(int theme) {
-        mTheme = theme == THEME_DARK ? THEME_DARK : THEME_LIGHT;
     }
 
     /**
@@ -264,10 +251,6 @@ public class LockScreen extends DialogFragment {
         outState.putBoolean(BUNDLE_SETUP, mSetup);
 
         super.onSaveInstanceState(outState);
-    }
-
-    private void updateTheme() {
-        //TODO
     }
 
     /**

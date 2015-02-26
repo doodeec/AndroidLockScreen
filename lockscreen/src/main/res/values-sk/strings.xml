@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="wrong_pin_toast">Nesprávny PIN! Skúste znovu.</string>
+    <string name="setup_pin_hint">Nastavte PIN</string>
+    <string name="pin_hint_default">Zadajte PIN</string>
+</resources>
