@@ -17,6 +17,7 @@ public class LockGridViewHolder extends RecyclerView.ViewHolder {
 
     TextView mItemValue;
 
+    @SuppressWarnings("deprecation")
     public LockGridViewHolder(View v, Drawable background) {
         super(v);
         mItemValue = (TextView) v.findViewById(R.id.grid_value);

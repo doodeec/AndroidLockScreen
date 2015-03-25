@@ -21,17 +21,14 @@ import java.util.Arrays;
  *
  * @author Dusan Doodeec Bartos
  */
-public class LockScreen extends DialogFragment {
+@SuppressWarnings("unused")
+public class LockScreen extends DialogFragment implements RecyclerItemClickListener.OnItemClickListener {
 
     private static final String BUNDLE_REAL_VALUE = "realVal";
     private static final String BUNDLE_CURRENT_VALUE = "val";
     private static final String BUNDLE_CURRENT_HINT = "hint";
     private static final String BUNDLE_FULLSCREEN = "fullscreen";
     private static final String BUNDLE_SETUP = "setup";
-
-    /**
-     * Dialog themes
-     */
 
     private boolean mCancelable = false;
     private boolean mFullscreen = true;
@@ -40,11 +37,13 @@ public class LockScreen extends DialogFragment {
     private CharSequence mRealValue;
     private StringBuilder mValue = new StringBuilder("");
     private TextView mValueTextView;
-    private View mLayoutView;
-    private View mValueSeparator;
+
+    private RecyclerView mNumbersGridView;
+    private LockGridAdapter mAdapter;
+    private RecyclerItemClickListener mItemClickListener;
 
     // empty initial listener
-    private static PINDialogListener mListener;
+    private static IPINDialogListener mListener;
     private static int mActiveColor = -1;
 
     public static void setActiveColor(int color) {
@@ -57,7 +56,7 @@ public class LockScreen extends DialogFragment {
      * @param listener callback to execute after successful PIN entry
      *                 null to disable callback
      */
-    public void setListener(PINDialogListener listener) {
+    public void setListener(IPINDialogListener listener) {
         mListener = listener;
     }
 
@@ -129,7 +128,7 @@ public class LockScreen extends DialogFragment {
      * @param cancelable is lock dialog cancellable
      * @param fullScreen is lock dialog fullscreen
      */
-    public void updateSettings(String realPIN, PINDialogListener listener, String hint,
+    public void updateSettings(String realPIN, IPINDialogListener listener, String hint,
                                Boolean cancelable, Boolean fullScreen, boolean setup) {
         setRealValue(realPIN);
         if (hint != null) {
@@ -183,13 +182,12 @@ public class LockScreen extends DialogFragment {
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container, Bundle savedInstanceState) {
-        mLayoutView = inflater.inflate(R.layout.lock_screen, container);
+        View layoutView = inflater.inflate(R.layout.lock_screen, container);
 
-        mValueTextView = (TextView) mLayoutView.findViewById(R.id.pin_value);
-        mValueSeparator = mLayoutView.findViewById(R.id.separator);
-        RecyclerView numbersGridView = (RecyclerView) mLayoutView.findViewById(R.id.numbers_grid);
+        mValueTextView = (TextView) layoutView.findViewById(R.id.pin_value);
+        mNumbersGridView = (RecyclerView) layoutView.findViewById(R.id.numbers_grid);
 
-        if (mValueTextView == null || numbersGridView == null) {
+        if (mValueTextView == null || mNumbersGridView == null) {
             throw new AssertionError("Lock screen has invalid layout");
         }
 
@@ -198,43 +196,14 @@ public class LockScreen extends DialogFragment {
         mValueTextView.setText(mValue);
 
         // initialize numbers grid
-        final LockGridAdapter adapter = new LockGridAdapter(getActivity(), mActiveColor);
-        numbersGridView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
-        numbersGridView.setAdapter(adapter);
-        numbersGridView.setHasFixedSize(true);
-        numbersGridView.addOnItemTouchListener(
-                new RecyclerItemClickListener(getActivity(), new RecyclerItemClickListener.OnItemClickListener() {
-                    @Override
-                    public void onItemClick(View view, int position) {
-                        // do whatever
-                        switch (adapter.getItemType(position)) {
-                            // char clicked, append it to the value
-                            case LockGridValues.NUMBER_TYPE:
-                                if (mValue.length() < 4) {
-                                    mValue.append(adapter.getItem(position));
-                                    refreshValueText();
-                                }
-                                break;
+        mItemClickListener = new RecyclerItemClickListener(getActivity(), this);
+        mAdapter = new LockGridAdapter(getActivity(), mActiveColor);
+        mNumbersGridView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
+        mNumbersGridView.setAdapter(mAdapter);
+        mNumbersGridView.setHasFixedSize(true);
+        mNumbersGridView.addOnItemTouchListener(mItemClickListener);
 
-                            // delete the last character from PIN
-                            case LockGridValues.BACK_TYPE:
-                                if (mValue.length() > 0) {
-                                    mValue.deleteCharAt(mValue.length() - 1);
-                                }
-                                refreshValueText();
-                                break;
-
-                            // submit entered PIN and clear the value
-                            case LockGridValues.SUBMIT_TYPE:
-                                submitPIN();
-                                mValue = new StringBuilder("");
-                                break;
-                        }
-                    }
-                })
-        );
-
-        return mLayoutView;
+        return layoutView;
     }
 
     /**
@@ -251,6 +220,36 @@ public class LockScreen extends DialogFragment {
         outState.putBoolean(BUNDLE_SETUP, mSetup);
 
         super.onSaveInstanceState(outState);
+    }
+
+    @Override
+    public void onItemClick(View view, int position) {
+        if (getDialog() != null) {
+            // do whatever
+            switch (mAdapter.getItemType(position)) {
+                // char clicked, append it to the value
+                case LockGridValues.NUMBER_TYPE:
+                    if (mValue.length() < 4) {
+                        mValue.append(mAdapter.getItem(position));
+                        refreshValueText();
+                    }
+                    break;
+
+                // delete the last character from PIN
+                case LockGridValues.BACK_TYPE:
+                    if (mValue.length() > 0) {
+                        mValue.deleteCharAt(mValue.length() - 1);
+                    }
+                    refreshValueText();
+                    break;
+
+                // submit entered PIN and clear the value
+                case LockGridValues.SUBMIT_TYPE:
+                    submitPIN();
+                    mValue = new StringBuilder("");
+                    break;
+            }
+        }
     }
 
     /**
@@ -271,10 +270,12 @@ public class LockScreen extends DialogFragment {
         if (mListener != null) {
             if (mSetup) {
                 mListener.onPINSetup(mValue.toString());
-                getDialog().dismiss();
+                mNumbersGridView.removeOnItemTouchListener(mItemClickListener);
+                dismiss();
             } else if (mValue.toString().equals(mRealValue)) {
                 mListener.onPINEntered();
-                getDialog().dismiss();
+                mNumbersGridView.removeOnItemTouchListener(mItemClickListener);
+                dismiss();
             } else {
                 mListener.onWrongEntry();
                 mValueTextView.setText("");
@@ -289,11 +290,25 @@ public class LockScreen extends DialogFragment {
         super.onDestroy();
     }
 
-    public interface PINDialogListener {
+    /**
+     * Interface to be used as a callback object
+     */
+    public interface IPINDialogListener {
+        /**
+         * Fired when entered PIN is correct
+         */
         void onPINEntered();
 
+        /**
+         * Used for setting up a new PIN
+         *
+         * @param pin entered PIN
+         */
         void onPINSetup(String pin);
 
+        /**
+         * Fired when entered PIN is not correct
+         */
         void onWrongEntry();
     }
 }

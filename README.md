@@ -1,5 +1,7 @@
 # PIN lock screen for Android
 
+## Version 1.2.0
+
 ## Description
 If you ever needed a lock screen widget - screen/dialog for entering a PIN, you pretty much ended
 with implementing it on your own, because there is no such thing in system natively.
@@ -15,13 +17,24 @@ library included in your SDK)
 ### Include library
 Simply inculde `lockscreen` in your gradle file
 
-### Set the lock screen
+    dependencies {
+        ...
+        compile 'com.doodeec.utils:lockScreen:1.2.0'
+    }
+
+### Set the PIN
 In your application, call `LockScreenController.setPIN(String)` first (this will set the real PIN
 the component will compare user entry to).
 
-### Show the lock screen
-Call `LockScreenController.askForPIN(Context, Callback runnable)` to show the lock screen. If user
+### Setup the PIN (by user)
+Call `LockScreenController.setupPIN(Context, FragmentManager, Callback runnable, Hint resource id,
+Cancellable flag, Fullscreen flag)` to show the lock screen. If user
 enters correct PIN, callback runnable is triggered.
+
+### Show the lock screen
+Call `LockScreenController.askForPIN(Context, FragmentManager, Callback runnable, Fullscreen flag)`
+to show the lock screen. If user enters new PIN, callback runnable is triggered. New PIN is then
+available through `LockScreenController.getPIN()` call.
 
 ## Licence
 Released under Apache V2.0 licence.

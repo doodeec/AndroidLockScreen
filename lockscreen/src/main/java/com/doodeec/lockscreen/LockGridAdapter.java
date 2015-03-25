@@ -67,20 +67,27 @@ public class LockGridAdapter extends RecyclerView.Adapter<LockGridViewHolder> {
         return mValues[position][0];
     }
 
-    public Drawable getBackgroundColorScheme(int defaultColor, int pressedColor) {
+    /**
+     * Sets stateList background drawable for viewHolder (numbers adapter) views
+     *
+     * @param defaultColor default color
+     * @param pressedColor pressed color
+     * @return drawable
+     */
+    private Drawable getBackgroundColorScheme(int defaultColor, int pressedColor) {
         int defaultBorder = Color.argb(30, 0, 0, 0);
         int pressedBorder = Color.argb(80, 0, 0, 0);
 
         // default state
         GradientDrawable defaultGd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
                 new int[]{defaultColor, defaultColor});
-        defaultGd.setStroke(3, defaultBorder);
+        defaultGd.setStroke(1, defaultBorder);
         defaultGd.setCornerRadius(3f * dp);
 
         // pressed state
         GradientDrawable pressedGd = new GradientDrawable(GradientDrawable.Orientation.BOTTOM_TOP,
                 new int[]{pressedColor, pressedColor});
-        pressedGd.setStroke(3, pressedBorder);
+        pressedGd.setStroke(1, pressedBorder);
         pressedGd.setCornerRadius(3f * dp);
 
         StateListDrawable drawable = new StateListDrawable();

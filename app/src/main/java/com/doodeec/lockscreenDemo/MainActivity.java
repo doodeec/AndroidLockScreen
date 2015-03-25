@@ -22,7 +22,7 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 LockScreenController.setPIN("1234");
-                LockScreenController.askForPIN(MainActivity.this, new Runnable() {
+                LockScreenController.askForPIN(MainActivity.this, getSupportFragmentManager(), new Runnable() {
                     @Override
                     public void run() {
                         Toast.makeText(MainActivity.this, "Unlocked", Toast.LENGTH_SHORT).show();
@@ -35,10 +35,10 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 LockScreenController.setPIN(null);
-                LockScreenController.setupPIN(MainActivity.this, new Runnable() {
+                LockScreenController.setupPIN(MainActivity.this, getSupportFragmentManager(), new Runnable() {
                     @Override
                     public void run() {
-                        Toast.makeText(MainActivity.this, "Set", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(MainActivity.this, "Set: " + LockScreenController.getPIN(), Toast.LENGTH_SHORT).show();
                     }
                 }, true);
             }

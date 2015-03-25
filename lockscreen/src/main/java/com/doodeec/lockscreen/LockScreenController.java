@@ -1,14 +1,19 @@
 package com.doodeec.lockscreen;
 
+import android.content.Context;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.support.v7.app.ActionBarActivity;
+import android.util.Log;
 import android.widget.Toast;
 
 /**
+ * Controller for LockScreen widget
+ * All interaction should be managed through this class
+ *
  * @author Dusan Doodeec Bartos
  */
+@SuppressWarnings("unused")
 public class LockScreenController {
 
     /**
@@ -98,16 +103,31 @@ public class LockScreenController {
         mLockDelay = delay;
     }
 
-    public static void askForPIN(final ActionBarActivity context, final Runnable runnable, Integer hintId, Boolean cancelable, Boolean fullScreen) {
-        askForPINInternal(context, new LockScreen.PINDialogListener() {
+    /**
+     * Opens PIN screen to ask for PIN
+     * PIN has to be set before, or it will be the default one ("")
+     *
+     * @param context         context
+     * @param fragmentManager fragment manager to use when showing Lock screen
+     * @param runnable        runnable to perform after successful entering (mandatory)
+     * @param hintId          string resource id to show as a hint
+     * @param cancelable      true to make PIN dialog cancellable
+     * @param fullScreen      true to make PIN dialog fullscreen
+     */
+    public static void askForPIN(final Context context, FragmentManager fragmentManager,
+                                 final Runnable runnable, Integer hintId, Boolean cancelable,
+                                 Boolean fullScreen) {
+        askForPINInternal(context, fragmentManager, new LockScreen.IPINDialogListener() {
             @Override
             public void onPINEntered() {
-                runnable.run();
+                if (runnable != null) {
+                    runnable.run();
+                }
             }
 
             @Override
             public void onPINSetup(String pin) {
-
+                // not used
             }
 
             @Override
@@ -117,14 +137,20 @@ public class LockScreenController {
         }, hintId, cancelable, fullScreen, false);
     }
 
-    public static void setupPIN(ActionBarActivity context, final Runnable runnable, Boolean fullScreen) {
-        askForPINInternal(context, new LockScreen.PINDialogListener() {
+    /**
+     * Sets new PIN
+     *
+     * @see #askForPIN(android.content.Context, android.support.v4.app.FragmentManager, Runnable, Integer, Boolean, Boolean)
+     */
+    public static void setupPIN(Context context, FragmentManager fragmentManager, final Runnable runnable, Boolean fullScreen) {
+        askForPINInternal(context, fragmentManager, new LockScreen.IPINDialogListener() {
             @Override
             public void onPINEntered() {
             }
 
             @Override
             public void onPINSetup(String pin) {
+                Log.w("PIN", pin);
                 setPIN(pin);
                 runnable.run();
             }
@@ -140,16 +166,16 @@ public class LockScreenController {
      * Prompt PIN dialog to unlock app
      *
      * @param context    context
+     * @param fm         fragment manager
      * @param listener   listener
      * @param hintId     text to display when PIN field is empty
      * @param cancelable true if dialog can be cancelled
      */
-    private static void askForPINInternal(final ActionBarActivity context,
-                                          LockScreen.PINDialogListener listener,
+    private static void askForPINInternal(final Context context,
+                                          FragmentManager fm,
+                                          LockScreen.IPINDialogListener listener,
                                           Integer hintId, Boolean cancelable, Boolean fullScreen,
                                           boolean setup) {
-        FragmentManager fm = context.getSupportFragmentManager();
-
         Fragment fragment = fm.findFragmentByTag(FRAGMENT_TAG);
         String hint = hintId != null ? context.getString(hintId) : null;
 
