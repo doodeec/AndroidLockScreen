@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.util.Log;
 import android.widget.Toast;
 
 /**
@@ -150,7 +149,6 @@ public class LockScreenController {
 
             @Override
             public void onPINSetup(String pin) {
-                Log.w("PIN", pin);
                 setPIN(pin);
                 runnable.run();
             }
