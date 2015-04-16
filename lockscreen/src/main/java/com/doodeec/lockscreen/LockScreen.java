@@ -1,5 +1,6 @@
 package com.doodeec.lockscreen;
 
+import android.app.Activity;
 import android.app.Dialog;
 import android.os.Bundle;
 import android.support.annotation.NonNull;
@@ -27,6 +28,7 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
     private static final String BUNDLE_REAL_VALUE = "realVal";
     private static final String BUNDLE_CURRENT_VALUE = "val";
     private static final String BUNDLE_CURRENT_HINT = "hint";
+    private static final String BUNDLE_CANCELABLE = "cancelable";
     private static final String BUNDLE_FULLSCREEN = "fullscreen";
     private static final String BUNDLE_SETUP = "setup";
 
@@ -44,20 +46,10 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
 
     // empty initial listener
     private static IPINDialogListener mListener;
-    private static int mActiveColor = -1;
+    private static int sActiveColor = -1;
 
     public static void setActiveColor(int color) {
-        mActiveColor = color;
-    }
-
-    /**
-     * Sets listener
-     *
-     * @param listener callback to execute after successful PIN entry
-     *                 null to disable callback
-     */
-    public void setListener(IPINDialogListener listener) {
-        mListener = listener;
+        sActiveColor = color;
     }
 
     /**
@@ -128,7 +120,7 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
      * @param cancelable is lock dialog cancellable
      * @param fullScreen is lock dialog fullscreen
      */
-    public void updateSettings(String realPIN, IPINDialogListener listener, String hint,
+    public void updateSettings(String realPIN, String hint,
                                Boolean cancelable, Boolean fullScreen, boolean setup) {
         setRealValue(realPIN);
         if (hint != null) {
@@ -141,7 +133,6 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
             setFullscreen(fullScreen);
         }
         setSetup(setup);
-        setListener(listener);
     }
 
     /**
@@ -156,6 +147,7 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
         if (savedInstanceState != null) {
             mRealValue = savedInstanceState.getString(BUNDLE_REAL_VALUE);
             mFullscreen = savedInstanceState.getBoolean(BUNDLE_FULLSCREEN);
+            mCancelable = savedInstanceState.getBoolean(BUNDLE_CANCELABLE);
             mSetup = savedInstanceState.getBoolean(BUNDLE_SETUP);
             mHint = savedInstanceState.getString(BUNDLE_CURRENT_HINT);
             mValue = new StringBuilder();
@@ -193,11 +185,11 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
 
         // set value and hint
         mValueTextView.setHint(mHint);
-        mValueTextView.setText(mValue);
+        refreshValueText();
 
         // initialize numbers grid
         mItemClickListener = new RecyclerItemClickListener(getActivity(), this);
-        mAdapter = new LockGridAdapter(getActivity(), mActiveColor);
+        mAdapter = new LockGridAdapter(getActivity(), sActiveColor);
         mNumbersGridView.setLayoutManager(new GridLayoutManager(getActivity(), 3));
         mNumbersGridView.setAdapter(mAdapter);
         mNumbersGridView.setHasFixedSize(true);
@@ -213,10 +205,11 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
      */
     @Override
     public void onSaveInstanceState(Bundle outState) {
-        outState.putString(BUNDLE_REAL_VALUE, mRealValue.toString());
+        outState.putString(BUNDLE_REAL_VALUE, mRealValue != null ? mRealValue.toString() : "");
         outState.putString(BUNDLE_CURRENT_VALUE, mValue.toString());
         outState.putString(BUNDLE_CURRENT_HINT, mHint.toString());
         outState.putBoolean(BUNDLE_FULLSCREEN, mFullscreen);
+        outState.putBoolean(BUNDLE_CANCELABLE, mCancelable);
         outState.putBoolean(BUNDLE_SETUP, mSetup);
 
         super.onSaveInstanceState(outState);
@@ -284,10 +277,20 @@ public class LockScreen extends DialogFragment implements RecyclerItemClickListe
     }
 
     @Override
-    public void onDestroy() {
-        // reset runnable
+    public void onAttach(Activity activity) {
+        super.onAttach(activity);
+        try {
+            mListener = (IPINDialogListener) activity;
+        } catch (ClassCastException e) {
+            throw new ClassCastException(activity.toString()
+                    + " must implement IPINDialogListener");
+        }
+    }
+
+    @Override
+    public void onDetach() {
+        super.onDetach();
         mListener = null;
-        super.onDestroy();
     }
 
     /**

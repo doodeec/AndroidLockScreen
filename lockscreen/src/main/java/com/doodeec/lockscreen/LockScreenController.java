@@ -4,7 +4,6 @@ import android.content.Context;
 import android.os.Handler;
 import android.support.v4.app.Fragment;
 import android.support.v4.app.FragmentManager;
-import android.widget.Toast;
 
 /**
  * Controller for LockScreen widget
@@ -108,56 +107,22 @@ public class LockScreenController {
      *
      * @param context         context
      * @param fragmentManager fragment manager to use when showing Lock screen
-     * @param runnable        runnable to perform after successful entering (mandatory)
      * @param hintId          string resource id to show as a hint
      * @param cancelable      true to make PIN dialog cancellable
      * @param fullScreen      true to make PIN dialog fullscreen
      */
     public static void askForPIN(final Context context, FragmentManager fragmentManager,
-                                 final Runnable runnable, Integer hintId, Boolean cancelable,
-                                 Boolean fullScreen) {
-        askForPINInternal(context, fragmentManager, new LockScreen.IPINDialogListener() {
-            @Override
-            public void onPINEntered() {
-                if (runnable != null) {
-                    runnable.run();
-                }
-            }
-
-            @Override
-            public void onPINSetup(String pin) {
-                // not used
-            }
-
-            @Override
-            public void onWrongEntry() {
-                Toast.makeText(context, R.string.wrong_pin_toast, Toast.LENGTH_SHORT).show();
-            }
-        }, hintId, cancelable, fullScreen, false);
+                                 Integer hintId, Boolean cancelable, Boolean fullScreen) {
+        askForPINInternal(context, fragmentManager, hintId, cancelable, fullScreen, false);
     }
 
     /**
      * Sets new PIN
      *
-     * @see #askForPIN(android.content.Context, android.support.v4.app.FragmentManager, Runnable, Integer, Boolean, Boolean)
+     * @see #askForPIN(android.content.Context, android.support.v4.app.FragmentManager, Integer, Boolean, Boolean)
      */
-    public static void setupPIN(Context context, FragmentManager fragmentManager, final Runnable runnable, Boolean fullScreen) {
-        askForPINInternal(context, fragmentManager, new LockScreen.IPINDialogListener() {
-            @Override
-            public void onPINEntered() {
-            }
-
-            @Override
-            public void onPINSetup(String pin) {
-                setPIN(pin);
-                runnable.run();
-            }
-
-            @Override
-            public void onWrongEntry() {
-
-            }
-        }, R.string.setup_pin_hint, true, fullScreen, true);
+    public static void setupPIN(Context context, FragmentManager fragmentManager, Boolean fullScreen) {
+        askForPINInternal(context, fragmentManager, R.string.setup_pin_hint, true, fullScreen, true);
     }
 
     /**
@@ -165,13 +130,11 @@ public class LockScreenController {
      *
      * @param context    context
      * @param fm         fragment manager
-     * @param listener   listener
      * @param hintId     text to display when PIN field is empty
      * @param cancelable true if dialog can be cancelled
      */
     private static void askForPINInternal(final Context context,
                                           FragmentManager fm,
-                                          LockScreen.IPINDialogListener listener,
                                           Integer hintId, Boolean cancelable, Boolean fullScreen,
                                           boolean setup) {
         Fragment fragment = fm.findFragmentByTag(FRAGMENT_TAG);
@@ -181,9 +144,9 @@ public class LockScreenController {
             LockScreen lockScreen = new LockScreen();
 
             lockScreen.show(fm, FRAGMENT_TAG);
-            lockScreen.updateSettings(mPIN, listener, hint, cancelable, fullScreen, setup);
+            lockScreen.updateSettings(mPIN, hint, cancelable, fullScreen, setup);
         } else if (fragment instanceof LockScreen) {
-            ((LockScreen) fragment).updateSettings(mPIN, listener, hint, cancelable, fullScreen, setup);
+            ((LockScreen) fragment).updateSettings(mPIN, hint, cancelable, fullScreen, setup);
         }
     }
 }

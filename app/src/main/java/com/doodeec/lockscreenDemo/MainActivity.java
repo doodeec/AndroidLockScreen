@@ -8,7 +8,7 @@ import android.widget.Toast;
 import com.doodeec.lockscreen.LockScreen;
 import com.doodeec.lockscreen.LockScreenController;
 
-public class MainActivity extends ActionBarActivity {
+public class MainActivity extends ActionBarActivity implements LockScreen.IPINDialogListener {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -22,12 +22,15 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 LockScreenController.setPIN("1234");
-                LockScreenController.askForPIN(MainActivity.this, getSupportFragmentManager(), new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Unlocked", Toast.LENGTH_SHORT).show();
-                    }
-                }, null, null, true);
+                LockScreenController.askForPIN(MainActivity.this, getSupportFragmentManager(), null, false, true);
+            }
+        });
+
+        findViewById(R.id.my_button2).setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                LockScreenController.setPIN("1234");
+                LockScreenController.askForPIN(MainActivity.this, getSupportFragmentManager(), null, true, true);
             }
         });
 
@@ -35,13 +38,23 @@ public class MainActivity extends ActionBarActivity {
             @Override
             public void onClick(View v) {
                 LockScreenController.setPIN(null);
-                LockScreenController.setupPIN(MainActivity.this, getSupportFragmentManager(), new Runnable() {
-                    @Override
-                    public void run() {
-                        Toast.makeText(MainActivity.this, "Set: " + LockScreenController.getPIN(), Toast.LENGTH_SHORT).show();
-                    }
-                }, true);
+                LockScreenController.setupPIN(MainActivity.this, getSupportFragmentManager(), true);
             }
         });
+    }
+
+    @Override
+    public void onPINSetup(String pin) {
+        Toast.makeText(this, "Setup " + pin, Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onPINEntered() {
+        Toast.makeText(this, "Unlock", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
+    public void onWrongEntry() {
+        Toast.makeText(this, "Wrong PIN", Toast.LENGTH_SHORT).show();
     }
 }
